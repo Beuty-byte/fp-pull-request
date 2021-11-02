@@ -1,6 +1,7 @@
 package com.app.helpdesk.model;
 
 import com.app.helpdesk.util.listener.AttachmentListener;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,9 +15,11 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @EntityListeners(AttachmentListener.class)
+@EqualsAndHashCode
 public class Attachment implements Serializable {
 
     @Id
+    @EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
@@ -28,6 +31,7 @@ public class Attachment implements Serializable {
     @Column(name = "content_type")
     private String contentType;
 
+    @EqualsAndHashCode.Exclude
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "ticket_id")
     private Ticket ticket;

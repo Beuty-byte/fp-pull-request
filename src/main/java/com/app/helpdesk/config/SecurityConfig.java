@@ -3,6 +3,7 @@ package com.app.helpdesk.config;
 import com.app.helpdesk.security.jwt.JwtConfigurer;
 import com.app.helpdesk.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,10 +17,13 @@ import java.util.List;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final JwtTokenProvider jwtTokenProvider;
     private static final String EMPLOYEE = "EMPLOYEE";
     private static final String MANAGER = "MANAGER";
     private static final String ENGINEER = "ENGINEER";
+
+    @Value("${spring.permitted.url}")
+    private String permittedUrl;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
@@ -38,11 +42,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().frameOptions().disable();
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
-        corsConfiguration.setAllowedOrigins(List.of("*"));
+        corsConfiguration.setAllowedOrigins(List.of(permittedUrl));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE"));
         corsConfiguration.setExposedHeaders(List.of("Authorization"));
         http.cors().configurationSource(request -> corsConfiguration);
-
 
         http.
                 httpBasic().disable()
@@ -69,7 +72,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login");
-
     }
-
 }

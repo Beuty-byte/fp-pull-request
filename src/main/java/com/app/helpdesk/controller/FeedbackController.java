@@ -1,8 +1,6 @@
 package com.app.helpdesk.controller;
 
 import com.app.helpdesk.dto.FeedbackDto;
-import com.app.helpdesk.exception.NotAccessToTicketException;
-import com.app.helpdesk.exception_handling.ExceptionInfo;
 import com.app.helpdesk.model.Ticket;
 import com.app.helpdesk.security.CustomUserDetails;
 import com.app.helpdesk.service.FeedbackService;
@@ -15,9 +13,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
 import java.util.List;
 
 @RestController
+@RequestMapping("/feedbacks")
 public class FeedbackController {
 
     private final ValidationService validationService;
@@ -29,37 +29,28 @@ public class FeedbackController {
         this.feedbackService = feedbackService;
     }
 
-    @PostMapping("/feedbacks/{ticketId}")
+    @PostMapping("/{ticketId}")
     public ResponseEntity<?> createFeedback(@Valid @RequestBody FeedbackDto feedbackDto,
                                             BindingResult bindingResult,
                                             @AuthenticationPrincipal CustomUserDetails userDetails,
                                             @PathVariable Long ticketId) {
-
         List<String> errors = validationService.generateErrorMessage(bindingResult);
-
-        if (!errors.isEmpty()) {
+        if (checkErrors(errors)) {
             return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }
-
         Ticket ticket = validationService.checkAccessToFeedbackTicket(userDetails.getUser(), ticketId);
-        feedbackService.saveFeedback(feedbackDto, userDetails.getUser(), ticket);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        feedbackService.save(feedbackDto, userDetails.getUser(), ticket);
+        return ResponseEntity.created(URI.create(String.format("feedbacks/%s", ticketId))).build();
     }
 
-    @GetMapping("/feedbacks/{ticketId}")
+    private boolean checkErrors(List<String> errors) {
+        return !errors.isEmpty();
+    }
+
+    @GetMapping("/{ticketId}")
     public ResponseEntity<List<FeedbackDto>> getFeedbacks(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                          @PathVariable Long ticketId){
-
+                                                          @PathVariable Long ticketId) {
         List<FeedbackDto> feedbacks = feedbackService.getFeedbacks(userDetails.getUser(), ticketId);
-
         return new ResponseEntity<>(feedbacks, HttpStatus.OK);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ExceptionInfo> handleException(NotAccessToTicketException e) {
-        ExceptionInfo info = new ExceptionInfo();
-        info.setInfo(e.getMessage());
-        return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
     }
 }

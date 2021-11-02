@@ -1,8 +1,9 @@
 package com.app.helpdesk.service.impl;
 
 import com.app.helpdesk.dao.TicketDAO;
-import com.app.helpdesk.dto.CategoryAndUrgencyDto;
+import com.app.helpdesk.dto.CategoryDto;
 import com.app.helpdesk.dto.TicketDto;
+import com.app.helpdesk.dto.TicketDtoWrapper;
 import com.app.helpdesk.exception.TicketNotFoundException;
 import com.app.helpdesk.model.Ticket;
 import com.app.helpdesk.model.User;
@@ -26,10 +27,6 @@ import static com.app.helpdesk.model.enums.Role.*;
 @Transactional
 public class TicketServiceImpl implements TicketService {
 
-    private final TicketDAO ticketDAO;
-    private final TicketMapper ticketMapper;
-    private final CategoryService categoryService;
-
     private static final Map<String, Comparator<Ticket>> TICKET_SORTERS = Map.of(
             "id-asc", Comparator.comparing(Ticket::getId),
             "id-desc", Comparator.comparing(Ticket::getId, Comparator.reverseOrder()),
@@ -42,6 +39,11 @@ public class TicketServiceImpl implements TicketService {
             "status-asc", Comparator.comparing(Ticket::getState),
             "status-desc", Comparator.comparing(Ticket::getState, Comparator.reverseOrder())
     );
+    private static final String TICKET_ERROR_MESSAGE = "Ticket with id %s not found";
+
+    private final TicketDAO ticketDAO;
+    private final TicketMapper ticketMapper;
+    private final CategoryService categoryService;
 
     @Autowired
     public TicketServiceImpl(TicketDAO ticketDAO, TicketMapper ticketMapper, CategoryService categoryService) {
@@ -51,47 +53,63 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketDto> getAllTicketForCurrentUser(User user, String sortParam, int amountTicketsAtPage) {
+    public TicketDtoWrapper getAllTicketsForCurrentUser(User user, String sortParam, int amountTicketsAtPage, int page) {
 
         List<Ticket> allTickets = new ArrayList<>();
+        long amountTickets = 0;
 
         if (user.getRole().equals(ROLE_EMPLOYEE)) {
-            allTickets = ticketDAO.getTicketsForEmployee(user.getId(), amountTicketsAtPage);
+            allTickets = ticketDAO.getTicketsForEmployee(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountOwnTicketsFromEmployee(user.getId());
         }
 
         if (user.getRole().equals(ROLE_MANAGER)) {
-            allTickets = ticketDAO.getAllTicketsForManager(user.getId(), amountTicketsAtPage);
+            allTickets = ticketDAO.getAllTicketsForManager(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountAllTicketsFromManager(user.getId());
         }
 
         if (user.getRole().equals(ROLE_ENGINEER)) {
-            allTickets = ticketDAO.getTicketsForEngineer(user.getId(), amountTicketsAtPage);
+            allTickets = ticketDAO.getTicketsForEngineer(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountAllTicketsFromEngineer(user.getId());
         }
 
         sortTicketsByParam(allTickets, sortParam);
 
-        return ticketMapper.mapToDto(allTickets);
+        List<TicketDto> ticketDtos = ticketMapper.mapToDto(allTickets);
+        TicketDtoWrapper ticketDtoWrapper = new TicketDtoWrapper();
+        ticketDtoWrapper.setTicketDtoList(ticketDtos);
+        ticketDtoWrapper.setAmountTickets(amountTickets);
+        return ticketDtoWrapper;
     }
 
     @Override
-    public List<TicketDto> getOwnTicketForCurrentUser(User user, String sortParam, int amountTicketsAtPage) {
+    public TicketDtoWrapper getOwnTicketsForCurrentUser(User user, String sortParam, int amountTicketsAtPage, int page) {
 
         List<Ticket> ownTickets = new ArrayList<>();
+        long amountTickets = 0;
 
         if (user.getRole().equals(ROLE_EMPLOYEE)) {
-            ownTickets = ticketDAO.getTicketsForEmployee(user.getId(), amountTicketsAtPage);
+            ownTickets = ticketDAO.getTicketsForEmployee(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountOwnTicketsFromEmployee(user.getId());
         }
 
         if (user.getRole().equals(ROLE_MANAGER)) {
-            ownTickets = ticketDAO.getOwnTicketsForManager(user.getId(), amountTicketsAtPage);
+            ownTickets = ticketDAO.getOwnTicketsForManager(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountOwnTicketsFromManager(user.getId());
         }
 
         if (user.getRole().equals(ROLE_ENGINEER)) {
-            ownTickets = ticketDAO.getTicketsForEngineer(user.getId(), amountTicketsAtPage);
+            ownTickets = ticketDAO.getTicketsForEngineer(user.getId(), amountTicketsAtPage, page);
+            amountTickets = ticketDAO.getAmountAllTicketsFromEngineer(user.getId());
         }
 
         sortTicketsByParam(ownTickets, sortParam);
 
-        return ticketMapper.mapToDto(ownTickets);
+        List<TicketDto> ticketDtos = ticketMapper.mapToDto(ownTickets);
+        TicketDtoWrapper ticketDtoWrapper = new TicketDtoWrapper();
+        ticketDtoWrapper.setTicketDtoList(ticketDtos);
+        ticketDtoWrapper.setAmountTickets(amountTickets);
+        return ticketDtoWrapper;
     }
 
     @Override
@@ -115,35 +133,35 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public void saveTicket(TicketDto ticketDto, MultipartFile file, User user, String draft) {
+    public void save(TicketDto ticketDto, MultipartFile file, User user, String draft) {
         Ticket ticket = ticketMapper.mapToEntity(ticketDto, file, user, draft);
         ticketDAO.saveTicket(ticket);
     }
 
     @Override
     public TicketDto getTicketDtoById(Long ticketId) {
-        Ticket ticket = getTicketById(ticketId);
+        Ticket ticket = getById(ticketId);
         return ticketMapper.mapToDto(ticket);
     }
 
     @Override
-    public Ticket getTicketById(Long ticketId) {
+    public Ticket getById(Long ticketId) {
         return ticketDAO.getTicketById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(String.format("Ticket with id %s not found", ticketId)));
+                .orElseThrow(() -> new TicketNotFoundException(String.format(TICKET_ERROR_MESSAGE, ticketId)));
     }
 
     @Override
-    public TicketDto getDraftTicket(Long ticketId) {
-        CategoryAndUrgencyDto allCategory = categoryService.getAllCategoryWithUrgency();
+    public TicketDto getDraft(Long ticketId) {
+        CategoryDto allCategory = categoryService.getAllCategoryWithUrgency();
         Ticket ticket = ticketDAO.getTicketById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(String.format("Ticket with id %s not found", ticketId)));
+                .orElseThrow(() -> new TicketNotFoundException(String.format(TICKET_ERROR_MESSAGE, ticketId)));
         return ticketMapper.mapToDraftDto(ticket, allCategory);
     }
 
     @Override
     public void changeState(User user, Long ticketId, State newState) {
         Ticket ticket = ticketDAO.getTicketById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(String.format("Ticket with id %s not found", ticketId)));
+                .orElseThrow(() -> new TicketNotFoundException(String.format(TICKET_ERROR_MESSAGE, ticketId)));
 
         if (newState == State.APPROVED) {
             ticket.setState(newState);
@@ -154,7 +172,6 @@ public class TicketServiceImpl implements TicketService {
         } else {
             ticket.setState(newState);
         }
-
         ticketDAO.changeState(ticket);
     }
 

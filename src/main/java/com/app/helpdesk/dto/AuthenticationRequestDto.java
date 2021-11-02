@@ -1,5 +1,6 @@
 package com.app.helpdesk.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 
 import javax.validation.constraints.Email;
@@ -8,6 +9,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthenticationRequestDto {
 
     private static final String FIELDS_IS_EMPTY = "Please fill out the required field.";

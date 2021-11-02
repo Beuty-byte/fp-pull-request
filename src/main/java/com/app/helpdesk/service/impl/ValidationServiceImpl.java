@@ -14,7 +14,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,8 +31,8 @@ public class ValidationServiceImpl implements ValidationService {
             "Please select another file.";
 
     private static final Map<Role, Set<State>> ACCESS_TO_CHANGE_STATE = Map.of(
-            ROLE_EMPLOYEE, Set.of(NEW, CANCELED),
-            ROLE_MANAGER, Set.of(NEW, CANCELED, APPROVED, DECLINED),
+            ROLE_EMPLOYEE, Set.of(NEW, CANCELLED),
+            ROLE_MANAGER, Set.of(NEW, CANCELLED, APPROVED, DECLINED),
             ROLE_ENGINEER, Set.of(IN_PROGRESS, DONE)
     );
 
@@ -52,14 +51,6 @@ public class ValidationServiceImpl implements ValidationService {
                 .filter(BindingResult::hasErrors)
                 .map(this::getErrors)
                 .orElseGet(ArrayList::new);
-//        if (bindingResult.hasErrors()) {
-//            List<FieldError> errors = bindingResult.getFieldErrors();
-//            return errors.stream()
-//                    .map(e -> e.getField() + " : " + e.getDefaultMessage())
-//                    .collect(Collectors.toList());
-//        } else {
-//            return new ArrayList<>();
-//        }
     }
 
     private List<String> getErrors(BindingResult bindingResult) {
@@ -89,13 +80,13 @@ public class ValidationServiceImpl implements ValidationService {
     @Override
     public void checkAccessToDraftTicket(Long userId, Long ticketId) {
         ticketDAO.checkAccessToDraftTicket(userId, ticketId)
-                .orElseThrow(() -> new NotAccessToTicketException("You can't have access to current ticket"));
+                .orElseThrow(() -> new NoAccessToTicketException("You can't have access to current ticket"));
     }
 
     @Override
     public void checkAccessToDeleteAttachment(Long userId, Long attachmentId) {
         attachmentDAO.checkAccessToAttachment(userId, attachmentId)
-                .orElseThrow(() -> new NotAccessToAttachmentDelete("You can't delete this attachment"));
+                .orElseThrow(() -> new NoAccessToAttachmentDelete("You can't delete this attachment"));
     }
 
     @Override
@@ -103,8 +94,8 @@ public class ValidationServiceImpl implements ValidationService {
 
         Ticket ticket = getTicketForValidation(ticketId);
 
-        if (ticket.getOwned().getEmail().equals(user.getEmail()) && ticket.getState() != DRAFT) {
-            throw new NotAccessToTicketException("You can't formatted own ticket");
+        if (ticket.getOwner().getEmail().equals(user.getEmail()) && ticket.getState() != DRAFT) {
+            throw new NoAccessToTicketException("You can't formatted own ticket");
         }
 
         State state = getStateFromString(newState);
@@ -113,14 +104,14 @@ public class ValidationServiceImpl implements ValidationService {
                 .anyMatch(states -> states == state);
 
         if (!thereIsAccess) {
-            throw new NotAccessToChangeTicketState("You can't change state current ticket");
+            throw new NoAccessToChangeTicketState("You can't change state current ticket");
         }
     }
 
     @Override
     public Ticket checkAccessToFeedbackTicket(User user, Long ticketId) {
         return ticketDAO.checkAccessToFeedbackTicket(user.getId(), ticketId)
-                .orElseThrow(() -> new NotAccessToTicketException("You don't have access to current ticket"));
+                .orElseThrow(() -> new NoAccessToTicketException("You don't have access to current ticket"));
     }
 
     private State getStateFromString(String newState) {
@@ -130,7 +121,7 @@ public class ValidationServiceImpl implements ValidationService {
             }
             return State.valueOf(newState.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new NotFoundStateException(String.format("This state \"%s\" does not exist", newState));
+            throw new StateNotFoundException(String.format("This state \"%s\" does not exist", newState));
         }
     }
 

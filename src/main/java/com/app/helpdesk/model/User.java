@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(of = {"firstname", "lastname", "role", "email", "password"})
 public class User implements Serializable {
 
     @Id
@@ -23,20 +24,20 @@ public class User implements Serializable {
     @Column(name = "id")
     private long id;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false)
     private String firstname;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastname;
 
     @Column(name = "role_id")
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
     @OneToMany(mappedBy = "assignee")
@@ -45,7 +46,7 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "approver")
     private List<Ticket> approved = new ArrayList<>();
 
-    @OneToMany(mappedBy = "owned")
+    @OneToMany(mappedBy = "owner")
     private List<Ticket> ticketOwned = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")

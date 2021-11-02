@@ -6,13 +6,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TicketDAO {
-    List<Ticket> getTicketsForEmployee(Long employeeId, int amountTicketsAtPage);
+    List<Ticket> getTicketsForEmployee(Long employeeId, int amountTicketsAtPage, int page);
 
-    List<Ticket> getOwnTicketsForManager(Long managerId, int amountTicketsAtPage);
+    long getAmountOwnTicketsFromEmployee(Long employeeId);
 
-    List<Ticket> getAllTicketsForManager(Long managerId, int amountTicketsAtPage);
+    List<Ticket> getOwnTicketsForManager(Long managerId, int amountTicketsAtPage, int page);
 
-    List<Ticket> getTicketsForEngineer(Long engineerId, int amountTicketsAtPage);
+    long getAmountOwnTicketsFromManager(Long managerId);
+
+    List<Ticket> getAllTicketsForManager(Long managerId, int amountTicketsAtPage, int page);
+
+    long getAmountAllTicketsFromManager(Long managerId);
+
+    List<Ticket> getTicketsForEngineer(Long engineerId, int amountTicketsAtPage, int page);
+
+    long getAmountAllTicketsFromEngineer(Long managerId);
 
     List<Ticket> filterTicketsForManager(String filterRequest, Long managerId);
 

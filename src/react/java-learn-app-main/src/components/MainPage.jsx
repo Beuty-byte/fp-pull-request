@@ -18,16 +18,20 @@ class MainPage extends React.Component {
     super(props);
 
     this.state = {
-      allTicketsUrl: 'http://localhost:8080/all-tickets',
-      myTicketsUrl: 'http://localhost:8080/my-tickets',
+      allTicketsUrl: 'http://localhost:8080/tickets/all',
+      myTicketsUrl: 'http://localhost:8080/tickets/my',
       prop: 42,
       tabValue: 0,
       myTickets: [],
       allTickets: [],
       filteredTickets: [],
       amountTicketsAtPage: 5,
+      currentPage: 0,
+      totalAmountTickets: 0,
+
     };
   }
+
 
   componentDidMount() {
     const { myTicketsUrl } = this.state;
@@ -39,20 +43,109 @@ class MainPage extends React.Component {
       }
     }
 
-    fetch(myTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage, request)
+    //fetch(myTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage, request)
+    fetch(this.getCurrentUrl(), request)
       .then(data => data.json())
       .then(data => {
-        this.setState({ myTickets: data });
+        this.setState({ myTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
       });
   }
 
-  handleAmountTicketsAtPage = (value) => {
+  getCurrentUrl = () => {
+    if (this.state.tabValue === 0) {
+      if (this.state.amountTicketsAtPage !== 5 && this.state.currentPage !== 0) {
+        return this.state.myTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage + '&page=' + this.state.currentPage;
+      } else if (this.state.amountTicketsAtPage !== 5 && this.state.currentPage === 0) {
+        return this.state.myTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage;
+      } else if (this.state.amountTicketsAtPage === 5 && this.state.currentPage !== 0) {
+        return this.state.myTicketsUrl + '?page=' + this.state.currentPage;
+      }
+      return this.state.myTicketsUrl;
+    }
 
+    if (this.state.tabValue === 1) {
+      if (this.state.amountTicketsAtPage !== 5 && this.state.currentPage !== 0) {
+        return this.state.allTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage + '&page=' + this.state.currentPage;
+      } else if (this.state.amountTicketsAtPage !== 5 && this.state.currentPage === 0) {
+        return this.state.allTicketsUrl + '?amountTickets=' + this.state.amountTicketsAtPage;
+      } else if (this.state.amountTicketsAtPage === 5 && this.state.currentPage !== 0) {
+        return this.state.allTicketsUrl + '?page=' + this.state.currentPage;
+      }
+      return this.state.allTicketsUrl;
+    }
+  }
+
+  handleCurrentPage = (value) => {
+    console.log(value)
+    this.setState({
+      currentPage: value
+    })
+
+    console.log(this.getCurrentUrl())
     const { tabValue, myTickets, allTickets, allTicketsUrl, myTicketsUrl } = this.state;
 
-    this.setState({ amountTicketsAtPage: value });
+    const request = {
+      method: 'GET',
+      headers: {
+        'Authorization': localStorage.getItem("token")
+      }
+    }
 
 
+    if (tabValue === 0) {
+      //  let sortRequestAtMyTicketsUrl = myTicketsUrl + '?amountTickets=' + value ;
+
+
+      fetch(this.getCurrentUrl(), request)
+        .then(data => data.json())
+        .then(data => {
+          this.setState({ myTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
+        });
+    }
+
+    if (tabValue === 1) {
+      //  let sortRequestAtAllTicketsUrl = allTicketsUrl + '?amountTickets=' + value;
+
+      fetch(this.getCurrentUrl(), request)
+        .then(data => data.json())
+        .then(data => {
+          this.setState({ allTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
+        });
+    }
+  }
+
+  // handlePageChange = () => {
+  //   const { allTicketsUrl, myTicketsUrl } = this.state;
+
+  //   const request = {
+  //     method: 'GET',
+  //     headers: {
+  //       'Authorization': localStorage.getItem("token")
+  //     }
+  //   }
+
+  //   if (value === 0) {
+  //     fetch(this.getCurrentUrl, request)
+  //       .then(data => data.json())
+  //       .then(data => {
+  //         this.setState({ myTickets: data.ticketDtoList , totalAmountTickets : data.amountTickets});
+  //       });
+  //   }
+
+  //   if (value === 1) {
+  //     fetch(allTicketsUrl, request)
+  //       .then(data => data.json())
+  //       .then(data => {
+  //         this.setState({ allTickets: data.ticketDtoList , totalAmountTickets : data.amountTickets});
+  //       });
+  // }
+
+
+
+  handleAmountTicketsAtPage = (value) => {
+    const { tabValue, myTickets, allTickets, allTicketsUrl, myTicketsUrl } = this.state;
+
+    this.setState({ amountTicketsAtPage: value })
 
     const request = {
       method: 'GET',
@@ -62,23 +155,20 @@ class MainPage extends React.Component {
     }
 
     if (tabValue === 0) {
-      let sortRequestAtMyTicketsUrl = myTicketsUrl + '?amountTickets=' + value;
 
-    
-      fetch(sortRequestAtMyTicketsUrl, request)
+      fetch(this.getCurrentUrl(), request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ myTickets: data });
+          this.setState({ myTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
         });
     }
 
     if (tabValue === 1) {
-      let sortRequestAtAllTicketsUrl = allTicketsUrl + '?amountTickets=' + value;
- 
-      fetch(sortRequestAtAllTicketsUrl, request)
+
+      fetch(this.getCurrentUrl(), request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ allTickets: data });
+          this.setState({ allTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
         });
     }
   }
@@ -86,8 +176,6 @@ class MainPage extends React.Component {
   handleSortTicket = (value) => {
     const { tabValue, myTickets, allTickets, allTicketsUrl, myTicketsUrl } = this.state;
 
-    console.log(value)
-
     const request = {
       method: 'GET',
       headers: {
@@ -96,23 +184,36 @@ class MainPage extends React.Component {
     }
 
     if (tabValue === 0) {
-      let sortRequestAtMyTicketsUrl = myTicketsUrl + '?sort=' + value + '&amountTickets=' + this.state.amountTicketsAtPage;
 
-    
-      fetch(sortRequestAtMyTicketsUrl, request)
+      let sortRequest;
+
+      if (this.getCurrentUrl().includes('?')) {
+        sortRequest = this.getCurrentUrl() + '&sort=' + value;
+      } else {
+        sortRequest = this.getCurrentUrl() + '?sort=' + value;
+      }
+
+      fetch(sortRequest, request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ myTickets: data });
+          this.setState({ myTickets: data.ticketDtoList });
         });
     }
 
     if (tabValue === 1) {
-      let sortRequestAtAllTicketsUrl = allTicketsUrl + '?sort=' + value + '&amountTickets=' + this.state.amountTicketsAtPage;
-  
-      fetch(sortRequestAtAllTicketsUrl, request)
+
+      let sortRequest;
+
+      if (this.getCurrentUrl().includes('?')) {
+        sortRequest = this.getCurrentUrl() + '&sort=' + value;
+      } else {
+        sortRequest = this.getCurrentUrl() + '?sort=' + value;
+      }
+      console.log(sortRequest)
+      fetch(sortRequest, request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ allTickets: data });
+          this.setState({ allTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
         });
     }
   }
@@ -120,7 +221,6 @@ class MainPage extends React.Component {
   handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    // put logout logic here
     console.log("Logout");
   };
 
@@ -138,7 +238,7 @@ class MainPage extends React.Component {
       fetch(myTicketsUrl, request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ myTickets: data });
+          this.setState({ myTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
         });
     }
 
@@ -146,7 +246,7 @@ class MainPage extends React.Component {
       fetch(allTicketsUrl, request)
         .then(data => data.json())
         .then(data => {
-          this.setState({ allTickets: data });
+          this.setState({ allTickets: data.ticketDtoList, totalAmountTickets: data.amountTickets });
         });
     }
     this.setState({
@@ -178,8 +278,7 @@ class MainPage extends React.Component {
   }
 
   handleSearchTicket = (event) => {
-    // put search request here
-    const filterRequest = { filterRequest: event.target.value };
+    const filterRequest = { request: event.target.value };
 
     const { tabValue, allTickets, myTicketsUrl, filteredTickets } = this.state;
 
@@ -194,21 +293,19 @@ class MainPage extends React.Component {
       }
 
 
-      fetch(myTicketsUrl, request)
+      fetch("http://localhost:8080/tickets/filter", request)
         .then(res => {
           return res.json();
         }).then(data => {
-          this.setState({ filteredTickets: data });
+          this.setState({ filteredTickets: data, totalAmountTickets: data.amountTickets });
         });
-
-
     }
   };
 
   render() {
-    const { allTickets, filteredTickets, myTickets, tabValue } = this.state;
+    const { allTickets, filteredTickets, myTickets, tabValue, totalAmountTickets } = this.state;
     const { path } = this.props.match;
-    const { handleSearchTicket, handleTicketState } = this;
+    const { handleSearchTicket, handleTicketState, handleCurrentPage } = this;
 
     return (
       <>
@@ -224,6 +321,9 @@ class MainPage extends React.Component {
               >
                 Create Ticket
               </Button>
+
+              <div>{this.state.totalAmountTickets}</div>
+              <div>{this.getCurrentUrl()}</div>
               <Button
                 component={Link}
                 to="/"
@@ -251,6 +351,9 @@ class MainPage extends React.Component {
                     searchCallback={handleSearchTicket}
                     ticketsState={handleTicketState}
                     amountTicketsAtPage={this.handleAmountTicketsAtPage}
+                    handlepage={this.handleCurrentPage}
+                    AmountTickets={totalAmountTickets}
+
                     tickets={
                       filteredTickets.length ? filteredTickets : myTickets
                     }
@@ -263,6 +366,8 @@ class MainPage extends React.Component {
                     searchCallback={handleSearchTicket}
                     ticketsState={handleTicketState}
                     amountTicketsAtPage={this.handleAmountTicketsAtPage}
+                    handlepage={this.handleCurrentPage}
+                    AmountTickets={totalAmountTickets}
                     tickets={
                       filteredTickets.length ? filteredTickets : allTickets
                     }

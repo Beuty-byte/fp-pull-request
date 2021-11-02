@@ -12,8 +12,9 @@ import java.util.Optional;
 @Repository
 public class TicketDAOImpl implements TicketDAO {
 
-    private final EntityManager entityManager;
     private static final String FILTER_BY = "(name like :filterRequest or desiredResolutionDate like :filterRequest or urgency like :filterRequest)";
+
+    private final EntityManager entityManager;
 
     @Autowired
     public TicketDAOImpl(EntityManager entityManager) {
@@ -22,44 +23,75 @@ public class TicketDAOImpl implements TicketDAO {
 
 
     @Override
-    public List<Ticket> getTicketsForEmployee(Long employeeId, int amountTicketsAtPage) {
-        return entityManager.createQuery("from Ticket where owned.id = :id", Ticket.class)
+    public List<Ticket> getTicketsForEmployee(Long employeeId, int amountTicketsAtPage, int page) {
+        return entityManager.createQuery("from Ticket where owner.id = :id", Ticket.class)
                 .setParameter("id", employeeId)
+                .setFirstResult(amountTicketsAtPage * page)
                 .setMaxResults(amountTicketsAtPage)
                 .getResultList();
     }
 
 
+    public long getAmountOwnTicketsFromEmployee(Long employeeId) {
+        return (long) entityManager.createQuery("select count(*) from Ticket where owner.id = :id")
+                .setParameter("id", employeeId)
+                .getSingleResult();
+    }
+
     @Override
-    public List<Ticket> getOwnTicketsForManager(Long managerId, int amountTicketsAtPage) {
-        return entityManager.createQuery("from Ticket where owned.id = :id", Ticket.class)
+    public List<Ticket> getOwnTicketsForManager(Long managerId, int amountTicketsAtPage, int page) {
+        return entityManager.createQuery("from Ticket where owner.id = :id", Ticket.class)
                 .setParameter("id", managerId)
+                .setFirstResult(amountTicketsAtPage * page)
                 .setMaxResults(amountTicketsAtPage)
                 .getResultList();
     }
 
     @Override
-    public List<Ticket> getAllTicketsForManager(Long managerId, int amountTicketsAtPage) {
-        return entityManager
-                .createQuery("from Ticket where (state = 'NEW' and owned.role = 'ROLE_EMPLOYEE') or (approver.id = :id and state IN('APPROVED', 'DECLINED', 'CANCELED', 'IN_PROGRESS', 'DONE'))", Ticket.class)
+    public long getAmountOwnTicketsFromManager(Long managerId) {
+        return (long) entityManager.createQuery("select count(*) from Ticket where owner.id = :id")
                 .setParameter("id", managerId)
+                .getSingleResult();
+    }
+
+    @Override
+    public List<Ticket> getAllTicketsForManager(Long managerId, int amountTicketsAtPage, int page) {
+        return entityManager
+                .createQuery("from Ticket where (state = 'NEW' and owner.role = 'ROLE_EMPLOYEE') or (approver.id = :id and state IN('APPROVED', 'DECLINED', 'CANCELED', 'IN_PROGRESS', 'DONE'))", Ticket.class)
+                .setParameter("id", managerId)
+                .setFirstResult(amountTicketsAtPage * page)
                 .setMaxResults(amountTicketsAtPage)
                 .getResultList();
     }
 
     @Override
-    public List<Ticket> getTicketsForEngineer(Long engineerId, int amountTicketsAtPage) {
+    public long getAmountAllTicketsFromManager(Long managerId) {
+        return (long) entityManager.createQuery("select count(*) from Ticket where (state = 'NEW' and owner.role = 'ROLE_EMPLOYEE') or (approver.id = :id and state IN('APPROVED', 'DECLINED', 'CANCELED', 'IN_PROGRESS', 'DONE'))")
+                .setParameter("id", managerId)
+                .getSingleResult();
+    }
+
+    @Override
+    public List<Ticket> getTicketsForEngineer(Long engineerId, int amountTicketsAtPage, int page) {
         return entityManager
-                .createQuery("from Ticket where (state = 'APPROVED' and owned.role IN('ROLE_EMPLOYEE', 'ROLE_MANAGER')) or (assignee.id = :id and state IN('IN_PROGRESS', 'DONE'))", Ticket.class)
+                .createQuery("from Ticket where (state = 'APPROVED' and owner.role IN('ROLE_EMPLOYEE', 'ROLE_MANAGER')) or (assignee.id = :id and state IN('IN_PROGRESS', 'DONE'))", Ticket.class)
                 .setParameter("id", engineerId)
+                .setFirstResult(amountTicketsAtPage * page)
                 .setMaxResults(amountTicketsAtPage)
                 .getResultList();
+    }
+
+    @Override
+    public long getAmountAllTicketsFromEngineer(Long managerId) {
+        return (long) entityManager.createQuery("select count(*) from Ticket where (state = 'APPROVED' and owned.role IN('ROLE_EMPLOYEE', 'ROLE_MANAGER')) or (assignee.id = :id and state IN('IN_PROGRESS', 'DONE'))")
+                .setParameter("id", managerId)
+                .getSingleResult();
     }
 
     @Override
     public List<Ticket> filterTicketsForManager(String filterRequest, Long managerId) {
 
-        String hql = "from Ticket where (owned.id = :id or approver.id = :id) and " + FILTER_BY;
+        String hql = "from Ticket where (owner.id = :id or approver.id = :id) and " + FILTER_BY;
 
         return entityManager.createQuery(hql, Ticket.class)
                 .setParameter("id", managerId)
@@ -69,7 +101,7 @@ public class TicketDAOImpl implements TicketDAO {
     @Override
     public List<Ticket> filterTicketsForEmployee(String filterRequest, Long employeeId) {
 
-        String hql = "from Ticket where (owned.id = :id) and " + FILTER_BY;
+        String hql = "from Ticket where (owner.id = :id) and " + FILTER_BY;
 
         return entityManager.createQuery(hql, Ticket.class)
                 .setParameter("id", employeeId)
@@ -101,7 +133,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Optional<Ticket> checkAccessToDraftTicket(Long userId, Long ticketId) {
-        return entityManager.createQuery("from Ticket where owned.id = :userId and id = :id and state = 'DRAFT'", Ticket.class)
+        return entityManager.createQuery("from Ticket where owner.id = :userId and id = :id and state = 'DRAFT'", Ticket.class)
                 .setParameter("userId", userId)
                 .setParameter("id", ticketId)
                 .getResultStream()
@@ -110,7 +142,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Optional<Ticket> checkAccessToFeedbackTicket(Long userId, Long ticketId) {
-        return entityManager.createQuery("from Ticket where owned.id = :userId and id = :id and state = 'DONE'", Ticket.class)
+        return entityManager.createQuery("from Ticket where owner.id = :userId and id = :id and state = 'DONE'", Ticket.class)
                 .setParameter("userId", userId)
                 .setParameter("id", ticketId)
                 .getResultStream()

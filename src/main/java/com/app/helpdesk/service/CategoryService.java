@@ -1,10 +1,10 @@
 package com.app.helpdesk.service;
 
-import com.app.helpdesk.dto.CategoryAndUrgencyDto;
+import com.app.helpdesk.dto.CategoryDto;
 import com.app.helpdesk.model.Category;
 
 public interface CategoryService {
-    CategoryAndUrgencyDto getAllCategoryWithUrgency();
+    CategoryDto getAllCategoryWithUrgency();
 
     Category getCategoryByName(String categoryName);
 }

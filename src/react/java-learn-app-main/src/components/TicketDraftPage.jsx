@@ -9,6 +9,7 @@ import {
     Typography,
 } from "@material-ui/core";
 import { Link, withRouter, Redirect } from "react-router-dom";
+import { CATEGORIES_OPTIONS, URGENCY_OPTIONS  } from "../constants/inputsValues";
 import { ALL_TICKETS } from "../constants/mockTickets";
 
 class TicketDraftPage extends React.Component {
@@ -16,9 +17,9 @@ class TicketDraftPage extends React.Component {
         super(props);
 
         this.state = {
-            url: 'http://localhost:8080/draft-ticket',
+            url: 'http://localhost:8080/tickets',
             CATEGORIES_OPTIONS: [],
-            URGENCY_OPTIONS: [],
+       //     URGENCY_OPTIONS: [],
             ticketId: null,
             categoryValue: 'People Management',
             nameValue: "",
@@ -38,7 +39,7 @@ class TicketDraftPage extends React.Component {
         const ticketIdFromUrl = ticketFromUrl[ticketFromUrl.length - 1];
     
 
-        const url = this.state.url + '/' + ticketIdFromUrl;
+        const url = this.state.url + '/' + ticketIdFromUrl + '/draft';
 
         this.setState({
             ticketId : ticketIdFromUrl
@@ -55,7 +56,7 @@ class TicketDraftPage extends React.Component {
             .then(data => data.json())
             .then(data => {
 
-                let categoriesResult = data.categoryAndUrgencyDto.categories.reduce((arr, item) => {
+                let categoriesResult = data.categoryDto.categories.reduce((arr, item) => {
 
                     arr.push({ "label": item.name, "value": item.name })
 
@@ -63,18 +64,18 @@ class TicketDraftPage extends React.Component {
                 }, [])
 
 
-                let urgencyResult = data.categoryAndUrgencyDto.urgencies.reduce((arr, item) => {
-                    let itemInLowerCase = item.toLowerCase();
-                    let res = itemInLowerCase.charAt(0).toUpperCase() + itemInLowerCase.slice(1);
-                    if (item) {
-                        arr.push({ "label": res, "value": item.toLowerCase() });
-                    }
-                    return arr;
-                }, []);
+                // let urgencyResult = data.categoryDto.urgencies.reduce((arr, item) => {
+                //     let itemInLowerCase = item.toLowerCase();
+                //     let res = itemInLowerCase.charAt(0).toUpperCase() + itemInLowerCase.slice(1);
+                //     if (item) {
+                //         arr.push({ "label": res, "value": item.toLowerCase() });
+                //     }
+                //     return arr;
+                // }, []);
 
                 this.setState({
                     CATEGORIES_OPTIONS: [...this.state.CATEGORIES_OPTIONS, ...categoriesResult],
-                    URGENCY_OPTIONS: [...this.state.URGENCY_OPTIONS, ...urgencyResult],
+        //            URGENCY_OPTIONS: [...this.state.URGENCY_OPTIONS, ...urgencyResult],
                     nameValue: data.name,
                     resolutionDateValue: data.resolutionDate,
                     commentValue: data.comment,
@@ -84,25 +85,6 @@ class TicketDraftPage extends React.Component {
                     attachmentValue: data.attachmentDto,
                 })
             });
-
-
-
-
-        // set request for getting ticket in draft state
-
-
-        // const ticketData = ALL_TICKETS.find((item) => item.id === +ticketId);
-
-        // if (ticketData) {
-        //   this.setState({
-        //     nameValue: ticketData.name,
-        //     resolutionDateValue: ticketData.date,
-        //     commentValue: ticketData.comment,
-        //     descriptionValue: ticketData.description,
-        //     urgencyValue: ticketData.urgency,
-        //     categoryValue: ticketData.category
-        //   });
-        // }
     }
 
     handleCategoryChange = (event) => {
@@ -228,7 +210,7 @@ class TicketDraftPage extends React.Component {
             ticketId,
         } = this.state;
 
-        let url = 'http://localhost:8080/create-tickets';
+        let url = 'http://localhost:8080/tickets';
 
         let requestUrl = url;
 
@@ -255,7 +237,7 @@ class TicketDraftPage extends React.Component {
         formData.append('uploadFile', this.state.attachmentValue);
 
         fetch(requestUrl, {
-            method: 'POST',
+            method: 'PUT',
             body: formData,
             headers: { 'Authorization': localStorage.getItem("token") },
         }).then(
@@ -354,7 +336,7 @@ class TicketDraftPage extends React.Component {
                                         id: "urgency-label",
                                     }}
                                 >
-                                    {this.state.URGENCY_OPTIONS.map((item, index) => {
+                                    {URGENCY_OPTIONS.map((item, index) => {
                                         return (
                                             <MenuItem value={item.value} key={index}>
                                                 {item.label}

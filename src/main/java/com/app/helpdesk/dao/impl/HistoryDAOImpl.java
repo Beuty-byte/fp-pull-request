@@ -18,7 +18,7 @@ public class HistoryDAOImpl implements HistoryDAO {
     }
 
     @Override
-    public void saveHistory(History history) {
+    public void save(History history) {
         entityManager.persist(history);
     }
 }

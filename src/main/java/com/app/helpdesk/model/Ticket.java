@@ -3,6 +3,7 @@ package com.app.helpdesk.model;
 import com.app.helpdesk.model.enums.State;
 import com.app.helpdesk.model.enums.Urgency;
 import com.app.helpdesk.util.listener.TicketListener;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,14 +21,15 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @EntityListeners(TicketListener.class)
+@EqualsAndHashCode(of = {"name", "description", "state", "urgency"})
 public class Ticket implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "description")
@@ -46,24 +48,24 @@ public class Ticket implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
-    private User owned;
+    private User owner;
 
     @ManyToOne
     @JoinColumn(name = "approver_id")
     private User approver;
 
-    @Column(name = "state_id")
+    @Column(name = "state_id", nullable = false)
     @Enumerated(EnumType.STRING)
     private State state;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @OneToOne(mappedBy = "ticket", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
     private Attachment attachment;
 
-    @Column(name = "urgency_id")
+    @Column(name = "urgency_id", nullable = false)
     @Enumerated(EnumType.STRING)
     private Urgency urgency;
 

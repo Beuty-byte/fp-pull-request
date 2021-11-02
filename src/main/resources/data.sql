@@ -22,7 +22,7 @@ INSERT INTO tickets (id, name, description, created_on, desired_resolution_date,
 VALUES(2, 'simplename', 'dasdadsasd', '2018-09-05', '2018-09-05', 3, 3 , 'NEW', 2, 'LOW', 3);
 
 INSERT INTO tickets (id, name, description, created_on, desired_resolution_date, assignee_id, owner_id, state_id, category_id, urgency_id, approver_id)
-VALUES(3, 'simpleDone', 'dasdadsasd', '2018-09-05', '2018-09-05', 3, 3 , 'DONE', 3, 'LOW', 3);
+VALUES(3, 'simpleDone', 'dasdadsasd', '2018-09-05', '2018-09-05', 6, 3 , 'DONE', 3, 'LOW', 3);
 
 INSERT INTO tickets (id, name, description, created_on, desired_resolution_date, assignee_id, owner_id, state_id, category_id, urgency_id, approver_id)
 VALUES(4, 'Ticket for engineer APPROVED', 'dasdadsasd', '2018-09-05', '2018-09-04', 3, 3, 'APPROVED', 4, 'AVERAGE', 5);

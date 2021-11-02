@@ -9,7 +9,7 @@ class FeedbackPage extends React.Component {
 
         this.state = {
             feedbackValue: null,
-            feedbackGradle: null,
+            grade: null,
             submitError: false,
             isRedirect: false,
             feedbackError: [],
@@ -27,7 +27,6 @@ class FeedbackPage extends React.Component {
             method: 'GET',
             headers: {
                 'Authorization': localStorage.getItem("token"),
-                //'Content-Type': 'application/json;charset=utf-8'
             }
         }
         const url = 'http://localhost:8080/feedbacks/' + ticketIdFromUrl;
@@ -48,7 +47,7 @@ class FeedbackPage extends React.Component {
 
     handleGrade = (event) => {
         this.setState({
-            feedbackGradle: event,
+            grade: event,
         });
     }
 
@@ -59,7 +58,7 @@ class FeedbackPage extends React.Component {
 
         if (this.state.feedbackGradle !== null) {
 
-            const requestBody = { feedbackComment: this.state.feedbackValue, feedbackGradle: this.state.feedbackGradle }
+            const requestBody = { comment: this.state.feedbackValue, grade: this.state.grade }
 
             const request = {
                 method: 'POST',
@@ -134,7 +133,7 @@ class FeedbackPage extends React.Component {
                         onChange={this.handleChangeFeedback}
                     />
                     <button className="submit-button-from-feedbackpage" onClick={() => this.handleSubmit()}>Submit</button>
-                    {submitError ? "You should choose gradle" : ""}
+                    {submitError ? "You should choose grade" : ""}
 
                     {
                         allFeedbacks.length > 0 ?
@@ -145,7 +144,7 @@ class FeedbackPage extends React.Component {
 
                                     return <div className="allFeedbacks" key={key}>
                                         <div>
-                                            Gradle   {key.feedbackGradle}
+                                            Grade   {key.grade}
                                         </div>
 
                                         <div>

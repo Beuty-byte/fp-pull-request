@@ -64,7 +64,6 @@ class TicketInfo extends React.Component {
   }
 
   componentDidMount() {
-    // get required ticket by id
     const { ticketId } = this.props.match.params;
 
     const request = {
@@ -74,7 +73,7 @@ class TicketInfo extends React.Component {
       }
     }
 
-    const url = 'http://localhost:8080/ticket-info/' + ticketId;
+    const url = 'http://localhost:8080/tickets/' + ticketId;
 
 
     fetch(url, request)
@@ -102,24 +101,6 @@ class TicketInfo extends React.Component {
           ticketComments: data.comments,
         });
       });
-
-
-    // const { ticketId } = this.props.match.params;
-    // const ticket = ALL_TICKETS.find((item) => item.id === +ticketId);
-    // this.setState({
-    //   ticketData: {
-    //     ...this.state.ticketData,
-    //     id: ticket.id,
-    //     date: ticket.date,
-    //     resolutionDate: ticket.resolutionDate,
-    //     name: ticket.name,
-    //     status: ticket.status,
-    //     urgency: ticket.urgency,
-    //     action: ticket.action,
-    //     category: ticket.category,
-    //     ticketOwner: ticket.ticketOwner,
-    //   },
-    // });
   }
 
   handleDownloadAttachment = () => {
@@ -170,7 +151,6 @@ class TicketInfo extends React.Component {
   };
 
   addComment = () => {
-    // put request for comment creation here
 
     const ticketFromUrl = window.location.href.split("/");
     const ticketIdFromUrl = ticketFromUrl[ticketFromUrl.length - 1];
@@ -201,30 +181,12 @@ class TicketInfo extends React.Component {
             commentCreationError : data.json()
           })
 
-          // return data.json();
         }
       })
-    //   .then(result => this.setState({ feedbackError: result }))
 
-
-
-
-    //  console.log("dsadasd")
-
-
-    //   const newComment = {
-    //     date: new Date().toLocaleDateString(),
-    //     user: this.state.currentUser.name,
-    //     comment: this.state.commentValue,
-    //   };
-    //   this.setState({
-    //     ticketComments: [...this.state.ticketComments, newComment],
-    //     commentValue: "",
-    //   });
   };
 
   handleSubmitTicket = () => {
-    // set ticket status to 'submitted'
     console.log("SUBMIT ticket");
   };
 

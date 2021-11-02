@@ -7,6 +7,7 @@ import com.app.helpdesk.model.User;
 import java.util.List;
 
 public interface FeedbackService {
-    void saveFeedback(FeedbackDto feedbackDto, User user, Ticket ticket);
+    void save(FeedbackDto feedbackDto, User user, Ticket ticket);
+
     List<FeedbackDto> getFeedbacks(User user, Long ticketId);
 }

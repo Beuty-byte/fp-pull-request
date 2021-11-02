@@ -22,13 +22,38 @@ class TicketsTable extends React.Component {
     super(props);
 
     this.state = {
+      requestUrl : 'http://localhost:8080/tickets/',
       page: 0,
       rowsPerPage: 5,
+      currentPage: 0,
     };
   }
 
-  handleChangePage = () => {
-    console.log("change page");
+  // handleChangePage = (e) => {
+
+  //   console.log(this.state.page)
+  //   this.props.handlepage(this.state.page)
+  //   console.log("change page");
+  // };
+
+  loadPreviousPage = (e) => {
+    const p = this.state.page - 1;
+     
+    this.setState({
+      page: p,
+    })
+    
+    this.props.handlepage(p)
+  };
+
+  loadNextPage = (e) => {
+    const p = this.state.page + 1;
+
+    this.setState({
+      page: p,
+    })
+
+    this.props.handlepage(p)
   };
 
   handleChangeRowsPerPage = (event) => {
@@ -51,7 +76,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=new';
+    const url = this.state.requestUrl + e + '/change-state/' + '?new-state=new';
 
     fetch(url, request)
       .then(data => {
@@ -69,7 +94,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=canceled';
+    const url = this.state.requestUrl + e + '/change-state/'+ '?new-state=canceled';
 
     fetch(url, request)
       .then(data => {
@@ -86,7 +111,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=approved';
+    const url = this.state.requestUrl + e + '/change-state/' + '?new-state=approved';
 
     fetch(url, request)
       .then(data => {
@@ -103,7 +128,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=declined';
+    const url = this.state.requestUrl + e + '/change-state/' + '?new-state=declined';
 
     fetch(url, request)
       .then(data => {
@@ -120,7 +145,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=in-progress';
+    const url = this.state.requestUrl + e + '/change-state/' + '?new-state=in-progress';
 
     fetch(url, request)
       .then(data => {
@@ -137,7 +162,7 @@ class TicketsTable extends React.Component {
         'Authorization': localStorage.getItem("token")
       }
     }
-    const url = 'http://localhost:8080/change-state/' + e + '?new-state=done';
+    const url = this.state.requestUrl + e + '/change-state/' + '?new-state=done';
 
     fetch(url, request)
       .then(data => {
@@ -148,7 +173,7 @@ class TicketsTable extends React.Component {
   };
 
   render() {
-    const { searchCallback, tickets } = this.props;
+    const { searchCallback, tickets , AmountTickets} = this.props;
     const { page, rowsPerPage } = this.state;
     const { url } = this.props.match;
     const {
@@ -180,6 +205,8 @@ class TicketsTable extends React.Component {
           <Table>
             <TableHead>
               <TableRow>
+                <div>{this.state.page}</div>
+                <div>{this.state.rowsPerPage}</div>
                 {TICKETS_TABLE_COLUMNS.map((column) => (
                   <TableCell align={column.align} key={column.id}>
                     <b>{column.label}</b>
@@ -195,7 +222,7 @@ class TicketsTable extends React.Component {
             </TableHead>
             <TableBody>
               {tickets
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              //  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   return (
                     <TableRow hover role="checkbox" key={index}>
@@ -354,7 +381,16 @@ class TicketsTable extends React.Component {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 100]}
           component="div"
-          count={tickets.length}
+          //count={tickets.length}
+          backIconButtonProps={{
+            'aria-label': 'Previous Page',
+            'onClick': this.loadPreviousPage,
+          }}
+          nextIconButtonProps={{
+             'aria-label': 'Next Page',
+             'onClick': this.loadNextPage,
+         }}
+          count = {AmountTickets}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}

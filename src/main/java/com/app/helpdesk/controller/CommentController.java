@@ -1,12 +1,8 @@
 package com.app.helpdesk.controller;
 
 import com.app.helpdesk.dto.CommentDto;
-import com.app.helpdesk.exception.TicketNotFoundException;
-import com.app.helpdesk.exception_handling.ExceptionInfo;
-import com.app.helpdesk.model.Ticket;
 import com.app.helpdesk.security.CustomUserDetails;
 import com.app.helpdesk.service.CommentService;
-import com.app.helpdesk.service.TicketService;
 import com.app.helpdesk.service.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,44 +12,36 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
 import java.util.List;
 
 @RestController
+@RequestMapping("/comments")
 public class CommentController {
 
     private final CommentService commentService;
-    private final TicketService ticketService;
     private final ValidationService validationService;
 
     @Autowired
-    public CommentController(CommentService commentService, TicketService ticketService, ValidationService validationService) {
+    public CommentController(CommentService commentService, ValidationService validationService) {
         this.commentService = commentService;
-        this.ticketService = ticketService;
         this.validationService = validationService;
     }
 
-    @PostMapping("/comments/{ticketId}")
+    @PostMapping("/{ticketId}")
     public ResponseEntity<?> createNewComment(@Valid @RequestBody CommentDto commentDto,
                                               BindingResult bindingResult,
                                               @PathVariable Long ticketId,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<String> errorList = validationService.generateErrorMessage(bindingResult);
-
-        if (!errorList.isEmpty()) {
+        if (checkErrors(errorList)) {
             return new ResponseEntity<>(errorList, HttpStatus.BAD_REQUEST);
         }
-
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        commentService.saveComment(userDetails.getUser(), ticket, commentDto);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        commentService.saveComment(userDetails.getUser(), ticketId, commentDto);
+        return ResponseEntity.created(URI.create(String.format("/comments/%s", ticketId))).build();
     }
 
-
-    @ExceptionHandler
-    public ResponseEntity<ExceptionInfo> handleException(TicketNotFoundException e) {
-        ExceptionInfo info = new ExceptionInfo();
-        info.setInfo(e.getMessage());
-        return new ResponseEntity<>(info, HttpStatus.NOT_FOUND);
+    private boolean checkErrors(List<String> errorList) {
+        return !errorList.isEmpty();
     }
 }

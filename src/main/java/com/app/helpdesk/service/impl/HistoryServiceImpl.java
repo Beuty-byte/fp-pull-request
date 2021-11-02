@@ -28,30 +28,30 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     public void saveHistoryAfterCreateTicket(Ticket ticket) {
         History history = historyMapper.getHistoryAfterTicketCreate(ticket);
-        historyDAO.saveHistory(history);
+        historyDAO.save(history);
     }
 
     @Override
     public void saveHistoryAfterUpdateTicket(Ticket ticket) {
         History history = historyMapper.getHistoryAfterTicketUpdate(ticket);
-        historyDAO.saveHistory(history);
+        historyDAO.save(history);
     }
 
     @Override
     public void saveHistoryAfterUpdateState(State previousState, Ticket ticket) {
         History history = historyMapper.getHistoryAfterTicketChangeState(previousState, ticket);
-        historyDAO.saveHistory(history);
+        historyDAO.save(history);
     }
 
     @Override
     public void saveHistoryAfterCreateAttachment(Attachment attachment) {
         History history = historyMapper.getHistoryAfterAttachmentCreate(attachment);
-        historyDAO.saveHistory(history);
+        historyDAO.save(history);
     }
 
     @Override
     public void saveHistoryAfterRemoveAttachment(Attachment attachment) {
         History history = historyMapper.getHistoryAfterAttachmentRemove(attachment);
-        historyDAO.saveHistory(history);
+        historyDAO.save(history);
     }
 }

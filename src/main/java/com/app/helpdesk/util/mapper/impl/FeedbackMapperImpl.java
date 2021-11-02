@@ -15,8 +15,8 @@ public class FeedbackMapperImpl implements FeedbackMapper {
     @Override
     public Feedback mapToEntity(FeedbackDto feedbackDto, Ticket ticket, User user) {
         Feedback feedback = new Feedback();
-        feedback.setRate(feedbackDto.getFeedbackGradle());
-        feedback.setText(feedbackDto.getFeedbackComment());
+        feedback.setRate(feedbackDto.getGrade());
+        feedback.setText(feedbackDto.getComment());
         feedback.setTicket(ticket);
         feedback.setUser(user);
         return feedback;
@@ -25,10 +25,10 @@ public class FeedbackMapperImpl implements FeedbackMapper {
     @Override
     public List<FeedbackDto> mapToDto(List<Feedback> feedbacks) {
         return feedbacks.stream().map(feedback -> FeedbackDto.builder()
-                .feedbackComment(feedback.getText())
-                .localDate(feedback.getDate())
-                .feedbackGradle(feedback.getRate())
-                .build())
+                        .comment(feedback.getText())
+                        .localDate(feedback.getDate())
+                        .grade(feedback.getRate())
+                        .build())
                 .collect(Collectors.toList());
     }
 }

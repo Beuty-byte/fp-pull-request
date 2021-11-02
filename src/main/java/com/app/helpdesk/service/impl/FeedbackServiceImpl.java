@@ -27,7 +27,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public void saveFeedback(FeedbackDto feedbackDto, User user, Ticket ticket) {
+    public void save(FeedbackDto feedbackDto, User user, Ticket ticket) {
         Feedback feedback = feedbackMapper.mapToEntity(feedbackDto, ticket, user);
         feedbackDAO.saveFeedback(feedback);
     }

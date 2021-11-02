@@ -38,9 +38,10 @@ public class TicketMapperImpl implements TicketMapper {
     }
 
     @Override
-    public TicketDto mapToDraftDto(Ticket ticket, CategoryAndUrgencyDto categoryAndUrgencyDto) {
+    public TicketDto mapToDraftDto(Ticket ticket, CategoryDto categoryDto) {
         return TicketDto.builder()
-                .categoryAndUrgencyDto(categoryAndUrgencyDto)
+                .categoryDto(categoryDto)
+                .urgency(ticket.getUrgency().toString())
                 .attachmentDto(ticket.getAttachment() != null ?
                         new AttachmentDto(ticket.getAttachment().getId(), ticket.getAttachment().getName()) : null)
                 .name(ticket.getName())
@@ -63,7 +64,7 @@ public class TicketMapperImpl implements TicketMapper {
 
                 .createdOn(ticket.getCreatedOn())
                 .category(ticket.getCategory().getName())
-                .owner(ticket.getOwned().getFirstname() + " " + ticket.getOwned().getLastname())
+                .owner(ticket.getOwner().getFirstname() + " " + ticket.getOwner().getLastname())
                 .approver(ticket.getApprover() != null ?
                         ticket.getApprover().getFirstname() + " " + ticket.getApprover().getLastname() : "Not assigned")
                 .assignee(ticket.getAssignee() != null ?
@@ -113,7 +114,7 @@ public class TicketMapperImpl implements TicketMapper {
         ticket.setDescription(ticketDto.getDescription());
         ticket.setDesiredResolutionDate(ticketDto.getResolutionDate() == null
                 ? LocalDate.now().plusDays(10) : ticketDto.getResolutionDate());
-        ticket.setOwned(user);
+        ticket.setOwner(user);
         ticket.setUrgency(Urgency.valueOf(ticketDto.getUrgency().toUpperCase()));
 
         Comment comment = getCommentFromDto(ticketDto.getComment(), user);

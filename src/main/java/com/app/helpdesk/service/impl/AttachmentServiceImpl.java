@@ -1,7 +1,7 @@
 package com.app.helpdesk.service.impl;
 
 import com.app.helpdesk.dao.AttachmentDAO;
-import com.app.helpdesk.exception.NotFoundAttachmentException;
+import com.app.helpdesk.exception.AttachmentNotFoundException;
 import com.app.helpdesk.model.Attachment;
 import com.app.helpdesk.service.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public Attachment getAttachmentById(Long attachmentId) {
         return attachmentDAO.getAttachmentById(attachmentId)
-                .orElseThrow(() -> new NotFoundAttachmentException(String.format("Attachment with id : %s not found", attachmentId)));
+                .orElseThrow(() -> new AttachmentNotFoundException(String.format("Attachment with id : %s not found", attachmentId)));
     }
 
     @Override

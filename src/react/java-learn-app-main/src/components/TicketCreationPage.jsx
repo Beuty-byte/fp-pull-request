@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
+import { CATEGORIES_OPTIONS, URGENCY_OPTIONS  } from "../constants/inputsValues";
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { ALL_TICKETS } from "../constants/mockTickets";
 
@@ -16,9 +17,10 @@ class TicketCreationPage extends React.Component {
     super(props);
 
     this.state = {
-      url: 'http://localhost:8080/create-tickets',
+      categoriesUrl: 'http://localhost:8080/categories',
+      ticketsUrl: 'http://localhost:8080/tickets',
       CATEGORIES_OPTIONS: [],
-      URGENCY_OPTIONS: [],
+     // URGENCY_OPTIONS: [],
       categoryValue: 'People Management',
       nameValue: "",
       descriptionValue: " ",
@@ -32,7 +34,7 @@ class TicketCreationPage extends React.Component {
   }
 
   componentDidMount() {
-    const url = this.state.url;
+    const url = this.state.categoriesUrl;
 
     const request = {
       method: 'GET',
@@ -53,18 +55,8 @@ class TicketCreationPage extends React.Component {
         }, [])
 
 
-        let urgencyResult = data.urgencies.reduce((arr, item) => {
-          let itemInLowerCase = item.toLowerCase();
-          let res = itemInLowerCase.charAt(0).toUpperCase() + itemInLowerCase.slice(1);
-          if (item) {
-            arr.push({ "label": res, "value": item.toLowerCase() });
-          }
-          return arr;
-        }, []);
-
         this.setState({
           CATEGORIES_OPTIONS: [...this.state.CATEGORIES_OPTIONS, ...categoriesResult],
-          URGENCY_OPTIONS: [...this.state.URGENCY_OPTIONS, ...urgencyResult]
         })
       });
 
@@ -136,7 +128,7 @@ class TicketCreationPage extends React.Component {
 
   handleSubmitTicket = (e) => {
     const {
-      url,
+      ticketsUrl,
       nameValue,
       attachmentValue,
       categoryValue,
@@ -146,10 +138,10 @@ class TicketCreationPage extends React.Component {
       urgencyValue,
     } = this.state;
 
-    let requestUrl = url;
+    let requestUrl = ticketsUrl;
 
     if (e === "draft") {
-      requestUrl = url + "?save=draft";
+      requestUrl = ticketsUrl + "?save=draft";
     }
 
 
@@ -269,7 +261,7 @@ class TicketCreationPage extends React.Component {
                     id: "urgency-label",
                   }}
                 >
-                  {this.state.URGENCY_OPTIONS.map((item, index) => {
+                  {URGENCY_OPTIONS.map((item, index) => {
                     return (
                       <MenuItem value={item.value} key={index}>
                         {item.label}
@@ -290,8 +282,7 @@ class TicketCreationPage extends React.Component {
                   onChange={this.handleResolutionDate}
                   label="Desired resolution date"
                   type="date"
-                  //      format="DD-MM-YYYY"
-                  id="resolution-date"
+                    id="resolution-date"
                   value={resolutionDateValue}
                   InputLabelProps={{
                     shrink: true,

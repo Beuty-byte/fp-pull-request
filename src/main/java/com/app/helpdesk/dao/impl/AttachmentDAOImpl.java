@@ -33,7 +33,7 @@ public class AttachmentDAOImpl implements AttachmentDAO {
 
     @Override
     public Optional<Attachment> checkAccessToAttachment(Long userId, Long attachmentId) {
-        return entityManager.createQuery("from Attachment where id = :id and ticket.owned.id = :userId", Attachment.class)
+        return entityManager.createQuery("from Attachment where id = :id and ticket.owner.id = :userId", Attachment.class)
                 .setParameter("id", attachmentId)
                 .setParameter("userId", userId)
                 .getResultStream()
